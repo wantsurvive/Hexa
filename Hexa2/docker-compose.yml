@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  website:
+    build: ./Website
+    ports:
+      - "8080:3000"
+    environment:
+      - PORT=3000
+      # [수정] idsips가 호스트 모드가 되었으므로, 가상망 이름 대신 도커 기본 게이트웨이 IP(172.17.0.1)로 연결
+      - IDSIPS_URL=http://172.17.0.1:4000
+      - SESSION_SECRET=hexa-secret-123
+    volumes:
+      - ./Website/hexa.db:/app/hexa.db
+    depends_on:
+      - idsips
+    networks:
+      - hexa-network
+
+  idsips:
+    build: ./IDSIPS
+    # [수정] 충돌을 피하기 위해 networks 블록을 삭제하고 호스트 모드만 유지!
+    network_mode: "host"
+    privileged: true
+    environment:
+      - IDSIPS_PORT=4000
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hexa_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - hexa-network
+      
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hexa_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - hexa-network
+
+volumes:
+  grafana_data:
+
+networks:
+  hexa-network:
+    driver: bridge
+    
+

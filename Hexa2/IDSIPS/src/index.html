@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="idsips-api-base" content="" />
+  <title>IDS/IPS Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <div class="bg-layer"></div>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Realtime Security Operations</p>
+      <h1>IDS/IPS Control Center</h1>
+    </div>
+    <div class="topbar-actions">
+      <button id="systemToggle" class="btn btn-critical">IPS OFF</button>
+      <button id="exportAllLogsBtn" class="btn">전체 로그 내보내기</button>
+      <button id="exportSuspiciousLogsBtn" class="btn">의심 로그 내보내기</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel status-panel">
+      <h2>프로그램 상태</h2>
+      <div class="status-grid">
+        <article class="status-item">
+          <p>엔진 상태</p>
+          <strong id="engineStatus">OFF</strong>
+        </article>
+        <article class="status-item">
+          <p>활성 차단 IP</p>
+          <strong id="blockedCount">0</strong>
+        </article>
+        <article class="status-item">
+          <p>의심 이벤트</p>
+          <strong id="suspiciousCount">0</strong>
+        </article>
+        <article class="status-item">
+          <p>SSL 남은 일수</p>
+          <strong id="sslDaysLeft">-</strong>
+        </article>
+      </div>
+      <p class="hint">OFF 상태에서는 자동 차단이 비활성화되며 최소 운영 로그만 수집됩니다.</p>
+    </section>
+
+    <section class="panel metrics-panel">
+      <h2>1-1. 전체 서버 자원 사용률</h2>
+      <div id="resourceCards" class="resource-cards"></div>
+    </section>
+
+    <section class="panel ip-panel">
+      <div class="panel-head">
+        <h2>1-2 / 2. IP 자원 모니터링 및 차단</h2>
+        <input id="ipSearch" type="search" placeholder="IP 검색" />
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>IP</th>
+              <th>Role</th>
+              <th>CPU</th>
+              <th>MEM</th>
+              <th>NET</th>
+              <th>Scan Count</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="ipTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel control-panel">
+      <h2>2-1. 수동 IP 차단 / 해제</h2>
+      <form id="manualBlockForm" class="inline-form">
+        <input id="manualIpInput" type="text" placeholder="예: 192.168.0.10" required />
+        <input id="manualReasonInput" type="text" placeholder="차단 사유" required />
+        <button class="btn btn-critical" type="submit">수동 차단</button>
+        <button id="manualUnblockBtn" class="btn" type="button">수동 해제</button>
+      </form>
+      <p class="hint">관리자만 수동 차단/해제 및 정책 변경이 가능합니다.</p>
+    </section>
+
+    <section class="panel auth-panel">
+      <h2>2-4. 관리자 인허가</h2>
+      <div class="inline-form">
+        <input id="newUserIp" type="text" placeholder="신규 사용자 IP" />
+        <select id="newUserRole">
+          <option value="user">user</option>
+          <option value="admin">admin</option>
+        </select>
+        <button id="addUserBtn" class="btn" type="button">사용자 등록</button>
+      </div>
+      <ul id="pendingList" class="list"></ul>
+    </section>
+
+    <section class="panel firewall-panel">
+      <h2>4. 방화벽 시스템</h2>
+      <div class="grid-2">
+        <div>
+          <h3>허용 포트 정책</h3>
+          <form id="portPolicyForm" class="inline-form">
+            <input id="allowPortsInput" type="text" placeholder="예: 22,80,443" />
+            <button class="btn" type="submit">포트 정책 적용</button>
+          </form>
+          <p id="portPolicyText" class="hint"></p>
+        </div>
+        <div>
+          <h3>핵심 파일/권한 이벤트 시뮬레이션</h3>
+          <div class="inline-form">
+            <button id="simulatePermissionChangeBtn" class="btn btn-warning" type="button">권한 변경 시도</button>
+            <button id="simulateCoreFileChangeBtn" class="btn btn-warning" type="button">핵심 로그 파일 변경 시도</button>
+          </div>
+          <p class="hint">이벤트 발생 시 세션 종료 처리 및 경보를 수행합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel logs-panel">
+      <h2>3. 로그 수집 / 저장</h2>
+      <div class="grid-2">
+        <div>
+          <h3>전체 로그</h3>
+          <ul id="allLogsList" class="log-list"></ul>
+        </div>
+        <div>
+          <h3>의심 로그</h3>
+          <ul id="suspiciousLogsList" class="log-list danger"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel alert-panel">
+      <h2>실시간 경보</h2>
+      <div id="alertBanner" class="alert-banner">정상 상태</div>
+    </section>
+  </main>
+
+  <template id="logItemTemplate">
+    <li>
+      <span class="time"></span>
+      <span class="message"></span>
+    </li>
+  </template>
+
+  <script defer src="js/app.js?v=20260417"></script>
+</body>
+</html>

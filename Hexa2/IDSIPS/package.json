@@ -1,0 +1,16 @@
+{
+  "name": "hexa-idsips",
+  "version": "1.0.0",
+  "description": "IDS/IPS Backend and Frontend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "os-utils": "^0.0.14",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.1"
+  }
+}
